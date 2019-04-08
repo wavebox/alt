@@ -92,16 +92,22 @@ class AltStore {
     const { dispose } = this.transmitter.subscribe(cb)
     this.subscriptions.push({ cb, dispose })
     return () => {
-      this.lifecycle('unlisten')
-      dispose()
+      this.unlisten(cb)
     }
   }
 
   unlisten(cb) {
     this.lifecycle('unlisten')
-    this.subscriptions
-      .filter(subscription => subscription.cb === cb)
-      .forEach(subscription => subscription.dispose())
+
+    const disposable = []
+    this.subscriptions = this.subscriptions.filter((subscription) => {
+      if (subscription.cb === cb) {
+        disposable.push(subscription)
+        return false
+      }
+      return true
+    })
+    disposable.forEach((subscription) => subscription.dispose())
   }
 
   getState() {
